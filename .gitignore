@@ -1,0 +1,43 @@
+# 缓存和临时文件
+cache/
+output/
+uploads/
+static/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+.venv/
+env/
+.env
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# 大文件 (视频/图片素材)
+*.mov
+*.MOV
+*.HEIC
+!hit.mov  # 示例测试视频
+
+# 运行时生成
+*.jpg
+*.png
+*.json
+!detected_circles.jpg  # 示例检测结果
+!demand.md
+
+# 日志
+*.log

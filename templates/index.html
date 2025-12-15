@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>网球计分系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #1a5f2a 0%, #2d8f4a 50%, #1a5f2a 100%);
+            min-height: 100vh;
+            color: #fff;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            padding: 40px 0;
+        }
+
+        header h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .upload-section {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .upload-area {
+            border: 3px dashed rgba(255,255,255,0.5);
+            border-radius: 15px;
+            padding: 60px 40px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .upload-area:hover {
+            border-color: #fff;
+            background: rgba(255,255,255,0.1);
+        }
+
+        .upload-area.dragover {
+            border-color: #ffd700;
+            background: rgba(255,215,0,0.1);
+        }
+
+        .upload-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+        }
+
+        .upload-text {
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+        }
+
+        .upload-hint {
+            font-size: 0.9rem;
+            opacity: 0.7;
+        }
+
+        #file-input {
+            display: none;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #ffd700, #ffb700);
+            color: #1a5f2a;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(255,215,0,0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-demo {
+            background: rgba(255,255,255,0.2);
+            color: #fff;
+        }
+
+        .btn-demo:hover {
+            background: rgba(255,255,255,0.3);
+            box-shadow: 0 10px 30px rgba(255,255,255,0.2);
+        }
+
+        .progress-section {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .spinner {
+            width: 60px;
+            height: 60px;
+            border: 5px solid rgba(255,255,255,0.3);
+            border-top-color: #ffd700;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .progress-text {
+            font-size: 1.3rem;
+        }
+
+        .result-section {
+            display: none;
+        }
+
+        .score-card {
+            background: linear-gradient(135deg, #ffd700, #ffb700);
+            color: #1a5f2a;
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            margin: 20px 0;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .score-label {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+        }
+
+        .score-value {
+            font-size: 6rem;
+            font-weight: bold;
+            line-height: 1;
+        }
+
+        .score-unit {
+            font-size: 2rem;
+        }
+
+        .events-section {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            margin: 20px 0;
+        }
+
+        .events-title {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .event-list {
+            display: grid;
+            gap: 15px;
+        }
+
+        .event-item {
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .event-time {
+            font-size: 1.2rem;
+            font-weight: bold;
+            min-width: 80px;
+        }
+
+        .event-score {
+            font-size: 1.5rem;
+            font-weight: bold;
+            padding: 5px 20px;
+            border-radius: 20px;
+        }
+
+        .event-score.scored {
+            background: #ffd700;
+            color: #1a5f2a;
+        }
+
+        .event-score.miss {
+            background: rgba(255,255,255,0.2);
+            color: #fff;
+        }
+
+        .event-image {
+            flex: 1;
+            text-align: right;
+        }
+
+        .event-image img {
+            max-height: 100px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .event-image img:hover {
+            transform: scale(1.1);
+        }
+
+        .images-section {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            margin: 20px 0;
+        }
+
+        .images-title {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .images-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .image-card {
+            background: rgba(0,0,0,0.2);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .image-card img {
+            width: 100%;
+            display: block;
+        }
+
+        .image-card .caption {
+            padding: 10px;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal img {
+            max-width: 90%;
+            max-height: 90%;
+            border-radius: 10px;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            font-size: 3rem;
+            color: #fff;
+            cursor: pointer;
+        }
+
+        footer {
+            text-align: center;
+            padding: 40px;
+            opacity: 0.7;
+        }
+
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 2rem;
+            }
+
+            .score-value {
+                font-size: 4rem;
+            }
+
+            .event-item {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎾 网球计分系统</h1>
+            <p>自动检测击中事件，智能计算得分</p>
+        </header>
+
+        <section class="upload-section" id="upload-section">
+            <div class="upload-area" id="upload-area">
+                <div class="upload-icon">📹</div>
+                <div class="upload-text">拖放视频文件到这里</div>
+                <div class="upload-hint">或点击选择文件 (支持 MP4, MOV, AVI)</div>
+            </div>
+            <input type="file" id="file-input" accept=".mp4,.mov,.avi,.mkv">
+            <div style="margin-top: 30px;">
+                <button class="btn" id="upload-btn" disabled>开始分析</button>
+                <button class="btn btn-demo" id="demo-btn">演示模式</button>
+            </div>
+        </section>
+
+        <section class="progress-section" id="progress-section">
+            <div class="spinner"></div>
+            <div class="progress-text" id="progress-text">正在分析视频...</div>
+        </section>
+
+        <section class="result-section" id="result-section">
+            <div class="score-card">
+                <div class="score-label">总得分</div>
+                <div class="score-value" id="total-score">0</div>
+                <div class="score-unit">分</div>
+            </div>
+
+            <div class="events-section">
+                <div class="events-title">击中事件</div>
+                <div class="event-list" id="event-list"></div>
+            </div>
+
+            <div class="images-section">
+                <div class="images-title">检测结果</div>
+                <div class="images-grid" id="images-grid"></div>
+            </div>
+
+            <div style="text-align: center; margin-top: 30px;">
+                <button class="btn" id="reset-btn">重新分析</button>
+            </div>
+        </section>
+
+        <footer>
+            <p>Powered by Gemini + OpenCV + Flask</p>
+        </footer>
+    </div>
+
+    <div class="modal" id="modal">
+        <span class="modal-close" id="modal-close">&times;</span>
+        <img id="modal-img" src="">
+    </div>
+
+    <script>
+        const uploadArea = document.getElementById('upload-area');
+        const fileInput = document.getElementById('file-input');
+        const uploadBtn = document.getElementById('upload-btn');
+        const demoBtn = document.getElementById('demo-btn');
+        const resetBtn = document.getElementById('reset-btn');
+        const uploadSection = document.getElementById('upload-section');
+        const progressSection = document.getElementById('progress-section');
+        const resultSection = document.getElementById('result-section');
+        const progressText = document.getElementById('progress-text');
+        const modal = document.getElementById('modal');
+        const modalImg = document.getElementById('modal-img');
+        const modalClose = document.getElementById('modal-close');
+
+        let selectedFile = null;
+
+        // 拖放处理
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const file = e.dataTransfer.files[0];
+            if (file) {
+                selectFile(file);
+            }
+        });
+
+        uploadArea.addEventListener('click', () => {
+            fileInput.click();
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files[0]) {
+                selectFile(e.target.files[0]);
+            }
+        });
+
+        function selectFile(file) {
+            selectedFile = file;
+            uploadArea.querySelector('.upload-text').textContent = file.name;
+            uploadArea.querySelector('.upload-hint').textContent = `${(file.size / 1024 / 1024).toFixed(2)} MB`;
+            uploadBtn.disabled = false;
+        }
+
+        // 上传处理
+        uploadBtn.addEventListener('click', async () => {
+            if (!selectedFile) return;
+
+            showProgress('正在上传视频...');
+
+            const formData = new FormData();
+            formData.append('video', selectedFile);
+
+            try {
+                progressText.textContent = '正在分析视频，请稍候...';
+                const response = await fetch('/api/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+                if (result.error) {
+                    alert('错误: ' + result.error);
+                    showUpload();
+                } else {
+                    showResult(result);
+                }
+            } catch (error) {
+                alert('上传失败: ' + error.message);
+                showUpload();
+            }
+        });
+
+        // 演示模式
+        demoBtn.addEventListener('click', async () => {
+            showProgress('正在加载演示...');
+
+            try {
+                const response = await fetch('/api/demo');
+                const result = await response.json();
+                if (result.error) {
+                    alert('错误: ' + result.error);
+                    showUpload();
+                } else {
+                    showResult(result);
+                }
+            } catch (error) {
+                alert('加载失败: ' + error.message);
+                showUpload();
+            }
+        });
+
+        // 重置
+        resetBtn.addEventListener('click', () => {
+            selectedFile = null;
+            fileInput.value = '';
+            uploadArea.querySelector('.upload-text').textContent = '拖放视频文件到这里';
+            uploadArea.querySelector('.upload-hint').textContent = '或点击选择文件 (支持 MP4, MOV, AVI)';
+            uploadBtn.disabled = true;
+            showUpload();
+        });
+
+        function showProgress(text) {
+            uploadSection.style.display = 'none';
+            progressSection.style.display = 'block';
+            resultSection.style.display = 'none';
+            progressText.textContent = text;
+        }
+
+        function showUpload() {
+            uploadSection.style.display = 'block';
+            progressSection.style.display = 'none';
+            resultSection.style.display = 'none';
+        }
+
+        function showResult(result) {
+            uploadSection.style.display = 'none';
+            progressSection.style.display = 'none';
+            resultSection.style.display = 'block';
+
+            // 显示总分
+            document.getElementById('total-score').textContent = result.total_score;
+
+            // 显示事件列表
+            const eventList = document.getElementById('event-list');
+            eventList.innerHTML = '';
+
+            result.events.forEach((event, index) => {
+                const item = document.createElement('div');
+                item.className = 'event-item';
+
+                const scored = event.scored;
+                const scoreClass = scored ? 'scored' : 'miss';
+                const scoreText = scored ? `+${event.score}` : 'MISS';
+
+                item.innerHTML = `
+                    <div class="event-time">${event.time.toFixed(2)}s</div>
+                    <div class="event-score ${scoreClass}">${scoreText}</div>
+                    <div class="event-image">
+                        <img src="${result.images.hits[index]}" onclick="openModal(this.src)" alt="击中瞬间">
+                    </div>
+                `;
+
+                eventList.appendChild(item);
+            });
+
+            // 显示图片
+            const imagesGrid = document.getElementById('images-grid');
+            imagesGrid.innerHTML = `
+                <div class="image-card">
+                    <img src="${result.images.first_frame}" onclick="openModal(this.src)" alt="视频第一帧">
+                    <div class="caption">视频第一帧</div>
+                </div>
+                <div class="image-card">
+                    <img src="${result.images.circles}" onclick="openModal(this.src)" alt="圆圈检测">
+                    <div class="caption">得分圆圈检测</div>
+                </div>
+            `;
+        }
+
+        // 模态框
+        function openModal(src) {
+            modalImg.src = src;
+            modal.classList.add('show');
+        }
+
+        modalClose.addEventListener('click', () => {
+            modal.classList.remove('show');
+        });
+
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.classList.remove('show');
+            }
+        });
+    </script>
+</body>
+</html>
